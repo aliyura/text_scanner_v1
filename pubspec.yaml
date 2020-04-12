@@ -13,6 +13,7 @@ dependencies:
   share: ^0.6.3+6
   toast: ^0.1.5
   flutter_launcher_icons: "^0.7.3"
+  fancy_bottom_navigation: ^0.3.2
   gallery_saver: ^1.0.7
   url_launcher: ^5.4.2
   

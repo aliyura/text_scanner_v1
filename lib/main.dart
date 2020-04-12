@@ -6,11 +6,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:toast/toast.dart';
 import 'package:gallery_saver/gallery_saver.dart';
+import 'package:tscanner/components/object_preview.dart';
+import 'package:tscanner/components/text_preview.dart';
 import 'package:tscanner/components/themes.dart';
 import 'package:tscanner/screens/about.dart';
 import 'package:tscanner/screens/feedback.dart';
 import 'package:tscanner/screens/invite_friend.dart';
 import 'package:tscanner/screens/rate_app.dart';
+import 'package:fancy_bottom_navigation/fancy_bottom_navigation.dart';
 
 void main() => runApp(new App());
 
@@ -39,13 +42,16 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   AppState state;
   File imageFile;
-  String description;
+  String fileTitle;
+  String textResult;
+  int currentPosition = 1;
 
   @override
   void initState() {
     super.initState();
     state = AppState.free;
-    description = "No Text Scanned Yet ";
+    fileTitle = "Take file to Scan";
+    textResult = "No Taxt Scanned Yet";
   }
 
   @override
@@ -54,15 +60,16 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: Text("Text Scanner"),
           actions: <Widget>[
-     
-            GestureDetector(
-              child: Icon(Icons.image)
-            ),
-            SizedBox(width: 30),
-            GestureDetector(
-              child: Icon(Icons.picture_as_pdf),
-            ),
-            SizedBox(width: 20),
+            FlatButton.icon(
+                onPressed: () {},
+                icon: Icon(
+                  Icons.comment,
+                  color: AppTheme.white,
+                ),
+                label: Text(
+                  'Feedback',
+                  style: TextStyle(fontSize: 18, color: AppTheme.white),
+                ))
           ],
         ),
         drawer: Drawer(
@@ -142,36 +149,40 @@ class _MyAppState extends State<MyApp> {
             ],
           ),
         ),
-        body: Container(
-          width: double.infinity,
-          color: AppTheme.nearlyWhite,
-          height: MediaQuery.of(context).size.height,
-          child: imageFile != null
-              ? PhotoView(
-                  initialScale: PhotoViewComputedScale.contained * 0.8,
-                  imageProvider: FileImage(imageFile))
-              : Center(
-                  child: Container(
-                  width: 200,
-                  height: 100,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                      shape: BoxShape.rectangle,
-                      borderRadius: BorderRadius.all(Radius.circular(25))),
-                  margin: EdgeInsets.only(
-                      top: MediaQuery.of(context).size.height / 100),
-                  padding: EdgeInsets.only(top: 20),
-                  child: Column(
-                    children: <Widget>[
-                      Text(
-                        description,
-                        style: TextStyle(
-                            color: AppTheme.nearlyBlack, fontSize: 16),
-                      )
-                    ],
-                  ),
-                )),
+        bottomNavigationBar: FancyBottomNavigation(
+          initialSelection: 1,
+          tabs: [
+            TabData(iconData: Icons.picture_as_pdf, title: "Scan PDF"),
+            TabData(iconData: Icons.home, title: "Home"),
+            TabData(iconData: Icons.image, title: "Scan Image")
+          ],
+          onTabChangedListener: (position) {
+            setState(() {
+              currentPosition = position;
+            });
+          },
         ),
+        body: Container(
+            width: double.infinity,
+            color: AppTheme.nearlyWhite,
+            height: MediaQuery.of(context).size.height,
+            child: Column(
+              children: <Widget>[
+                Container(
+                  color: AppTheme.nearlyBlack,
+                  height: MediaQuery.of(context).size.height / 3,
+                  child:
+                      ObjectPreview(imageFile: imageFile, fileTitle: fileTitle),
+                ),
+                Divider(
+                  height: 0,
+                ),
+                Container(
+                  height: MediaQuery.of(context).size.height / 2.2,
+                  child: TextPreview(textResult: textResult),
+                )
+              ],
+            )),
         floatingActionButton: FloatingActionButton(
           backgroundColor: AppTheme.background,
           onPressed: () {
@@ -179,7 +190,8 @@ class _MyAppState extends State<MyApp> {
               _snapePicture();
             else if (state == AppState.picked)
               _cropImage();
-            else if (state == AppState.cropped) _saveImage();
+            else if (state == AppState.cropped)
+             _saveText();
           },
           child: _buildButtonIcon(),
         ));
@@ -254,12 +266,7 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  void _saveImage() async {
-    GallerySaver.saveImage(imageFile.path).then((bool success) {
-      setState(() {
-        state = AppState.free;
-      });
-    });
+  void _saveText() async {
     Toast.show("Saved", context);
   }
 }

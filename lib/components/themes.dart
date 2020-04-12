@@ -15,7 +15,7 @@ class AppTheme {
 
   static const Color nearlyWhite = Color(0xFFFAFAFA);
   static const Color white = Color(0xFFFFFFFF);
-  static const Color background = Colors.red;
+  static const Color background = Colors.indigoAccent;
   static  Color nearlyDarkBlue = HexColor('#4d55cd');
 
   static  Color nearlyBlue = HexColor('#5961d6'); 
