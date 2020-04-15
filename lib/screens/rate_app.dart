@@ -1,4 +1,4 @@
-import 'package:tscanner/components/themes.dart';
+import 'package:file2text/components/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -34,7 +34,7 @@ class _ReateAppScreenState extends State<ReateAppScreen> {
                       top: MediaQuery.of(context).padding.top,
                       left: 16,
                       right: 16),
-                  child: Image.asset('Assets/images/helpImage.png'),
+                  child: Image.asset('assets/images/helpImage.png'),
                 ),
                 Container(
                   padding: const EdgeInsets.only(top: 8),
@@ -78,7 +78,7 @@ class _ReateAppScreenState extends State<ReateAppScreen> {
                           color: Colors.transparent,
                           child: InkWell(
                             onTap: () {
-                              _launchURL("https://play.google.com/store/apps/details?id=com.rabsdeveloper.coronatracker");
+                              _launchURL("https://play.google.com/store/apps/details?id=com.rabsdeveloper.file2text");
                             },
                             child: Center(
                               child: Padding(

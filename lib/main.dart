@@ -1,19 +1,23 @@
+
+import 'package:file2text/components/history_manager.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:photo_view/photo_view.dart';
-import 'package:toast/toast.dart';
-import 'package:gallery_saver/gallery_saver.dart';
-import 'package:tscanner/components/object_preview.dart';
-import 'package:tscanner/components/text_preview.dart';
-import 'package:tscanner/components/themes.dart';
-import 'package:tscanner/screens/about.dart';
-import 'package:tscanner/screens/feedback.dart';
-import 'package:tscanner/screens/invite_friend.dart';
-import 'package:tscanner/screens/rate_app.dart';
+import 'package:file2text/components/object_preview.dart';
+import 'package:file2text/components/object_scanner.dart';
+import 'package:file2text/components/text_preview.dart';
+import 'package:file2text/components/themes.dart';
+import 'package:file2text/screens/about.dart';
+import 'package:file2text/screens/feedback.dart';
+import 'package:file2text/screens/invite_friend.dart';
+import 'package:file2text/screens/rate_app.dart';
 import 'package:fancy_bottom_navigation/fancy_bottom_navigation.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'components/result_manager.dart';
+import 'package:splashscreen/splashscreen.dart';
 
 void main() => runApp(new App());
 
@@ -21,9 +25,25 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Text Scanner',
-      theme: ThemeData.light().copyWith(primaryColor: AppTheme.background),
-      home: MyApp(),
+      title: 'File to Text',
+      theme: new ThemeData(
+        primaryColor: AppTheme.background,
+        pageTransitionsTheme: PageTransitionsTheme(builders: {
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+        }),
+      ),
+      home: SplashScreen(
+          seconds: 5,
+          image: Image.asset('assets/images/logo.png'),
+        photoSize: 30,
+        title:  Text('File to Text',style: TextStyle(color: AppTheme.white,fontWeight: FontWeight.bold,
+        fontSize: 20.0)),
+          navigateAfterSeconds: MyApp(),
+          backgroundColor: AppTheme.background,
+          loaderColor: AppTheme.white
+        ),
+      color: AppTheme.white,
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -41,36 +61,79 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   AppState state;
-  File imageFile;
+  File inputFile;
   String fileTitle;
   String textResult;
-  int currentPosition = 1;
+  int currentPosition = 3;
+  int scanningStatus = 0;
+  List<Object> history = new List();
 
   @override
   void initState() {
-    super.initState();
     state = AppState.free;
-    fileTitle = "Take file to Scan";
-    textResult = "No Taxt Scanned Yet";
+    fileTitle = "Browse File";
+    textResult = "No Conversion Yet";
+    _refreshHistory();
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: AppTheme.white,
         appBar: AppBar(
-          title: Text("Text Scanner"),
+          title: Text("File to Text"),
           actions: <Widget>[
-            FlatButton.icon(
-                onPressed: () {},
-                icon: Icon(
-                  Icons.comment,
-                  color: AppTheme.white,
-                ),
-                label: Text(
-                  'Feedback',
-                  style: TextStyle(fontSize: 18, color: AppTheme.white),
-                ))
+            SizedBox(width: 20),
+            GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => InviteFriend()));
+                },
+                child: Icon(Icons.share, color: AppTheme.white, size: 20)),
+            SizedBox(width: 40),
+            GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => FeedbackScreen()));
+                },
+                child: Icon(Icons.comment, color: AppTheme.white, size: 20)),
+            SizedBox(width: 20),
           ],
+        ),
+        bottomNavigationBar: FancyBottomNavigation(
+          circleColor: AppTheme.white,
+          activeIconColor: AppTheme.background,
+          barBackgroundColor: AppTheme.background,
+          textColor: AppTheme.white,
+          inactiveIconColor: AppTheme.white,
+          initialSelection: currentPosition,
+          tabs: [
+            TabData(iconData: Icons.add_a_photo, title: "Camera Scan"),
+            TabData(iconData: Icons.filter, title: "Image to Text"),
+            TabData(iconData: Icons.picture_as_pdf, title: "File to Text"),
+            TabData(iconData: Icons.library_books, title: "History")
+          ],
+          onTabChangedListener: (position) {
+            setState(() {
+              currentPosition = position;
+            });
+            switch (position) {
+              case 0:
+                _snapePicture();
+                break;
+              case 1:
+                _pickImage();
+                break;
+              case 2:
+                _pickFile();
+                break;
+              case 3:
+                _refreshHistory();
+               
+
+            }
+          },
         ),
         drawer: Drawer(
           child: ListView(
@@ -78,14 +141,14 @@ class _MyAppState extends State<MyApp> {
               Align(
                 alignment: Alignment.topCenter,
                 child: UserAccountsDrawerHeader(
-                  accountName: Text('Text Scanner v0.0.1'),
-                  accountEmail: Text('info@textscanner.com'),
+                  accountName: Text('Image to Text'),
+                  accountEmail: Text('v0.0.1'),
                   currentAccountPicture: GestureDetector(
                     child: CircleAvatar(
-                      backgroundColor: AppTheme.nearlyBlack.withOpacity(0.5),
+                      backgroundColor: AppTheme.white,
                       child: Icon(
-                        Icons.person,
-                        color: Colors.white,
+                        Icons.person_pin,
+                        color: AppTheme.background,
                       ),
                     ),
                   ),
@@ -94,7 +157,7 @@ class _MyAppState extends State<MyApp> {
               ),
               InkWell(
                   onTap: () {
-                    Navigator.pop(context);
+                     Navigator.pop(context);
                   },
                   child: ListTile(
                     title: Text('Home'),
@@ -149,19 +212,6 @@ class _MyAppState extends State<MyApp> {
             ],
           ),
         ),
-        bottomNavigationBar: FancyBottomNavigation(
-          initialSelection: 1,
-          tabs: [
-            TabData(iconData: Icons.picture_as_pdf, title: "Scan PDF"),
-            TabData(iconData: Icons.home, title: "Home"),
-            TabData(iconData: Icons.image, title: "Scan Image")
-          ],
-          onTabChangedListener: (position) {
-            setState(() {
-              currentPosition = position;
-            });
-          },
-        ),
         body: Container(
             width: double.infinity,
             color: AppTheme.nearlyWhite,
@@ -170,67 +220,188 @@ class _MyAppState extends State<MyApp> {
               children: <Widget>[
                 Container(
                   color: AppTheme.nearlyBlack,
-                  height: MediaQuery.of(context).size.height / 3,
-                  child:
-                      ObjectPreview(imageFile: imageFile, fileTitle: fileTitle),
+                  height: (MediaQuery.of(context).size.height / 2 - 150),
+                  child: GestureDetector(
+                      onTap: () {
+                        _pickImage();
+                      },
+                      child:
+                          ObjectPreview(file: inputFile, fileTitle: fileTitle)),
                 ),
                 Divider(
                   height: 0,
                 ),
-                Container(
-                  height: MediaQuery.of(context).size.height / 2.2,
-                  child: TextPreview(textResult: textResult),
-                )
+                currentPosition == 3
+                    ? Container(
+                        width: double.infinity,
+                        height: (MediaQuery.of(context).size.height / 2),
+                        child:
+                            HistoryPreview(list: history, inputFile: inputFile))
+                    : Container(
+                        height: (MediaQuery.of(context).size.height / 2),
+                        child: TextPreview(textResult: textResult),
+                      )
               ],
             )),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: AppTheme.background,
-          onPressed: () {
-            if (state == AppState.free)
-              _snapePicture();
-            else if (state == AppState.picked)
-              _cropImage();
-            else if (state == AppState.cropped)
-             _saveText();
-          },
-          child: _buildButtonIcon(),
-        ));
-  }
-
-  Widget _buildButtonIcon() {
-    if (state == AppState.free)
-      return Icon(Icons.add_a_photo);
-    else if (state == AppState.picked)
-      return Icon(Icons.crop);
-    else if (state == AppState.cropped)
-      return Icon(Icons.save_alt);
-    else
-      return Container();
+        floatingActionButton: scanningStatus == 1 && currentPosition != 3
+            ? Container(
+                margin: EdgeInsets.only(bottom: 50),
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      SizedBox(
+                        width: 70,
+                        height: 50,
+                        child: FloatingActionButton(
+                          backgroundColor: AppTheme.background,
+                          onPressed: () {
+                            ResultManager(context, inputFile)
+                                .copyText(textResult);
+                          },
+                          child: Icon(Icons.content_copy),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      SizedBox(
+                        width: 70,
+                        height: 50,
+                        child: FloatingActionButton(
+                          backgroundColor: AppTheme.background,
+                          onPressed: () {
+                            ResultManager(context, inputFile)
+                                .shareText(textResult);
+                          },
+                          child: Icon(Icons.exit_to_app),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      SizedBox(
+                        width: 70,
+                        height: 50,
+                        child: FloatingActionButton(
+                          backgroundColor: AppTheme.background,
+                          onPressed: () {
+                            ResultManager(context, inputFile)
+                                .saveText(textResult);
+                          },
+                          child: Icon(Icons.save_alt),
+                        ),
+                      ),
+                    ]),
+              )
+            : Container(
+                width: 70,
+                height: 50,
+                margin: EdgeInsets.only(bottom: 50),
+                child: FloatingActionButton(
+                  backgroundColor: AppTheme.background,
+                  onPressed: () {
+                    _snapePicture();
+                  },
+                  child: Icon(Icons.add_a_photo),
+                ),
+              ));
   }
 
   Future<Null> _pickImage() async {
-    imageFile = await ImagePicker.pickImage(source: ImageSource.gallery);
-    if (imageFile != null) {
+    _resetScreen();
+    inputFile = await FilePicker.getFile(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'png', 'gif', 'jpeg'],
+    );
+    if (inputFile != null) {
       setState(() {
         state = AppState.picked;
         _cropImage();
+      });
+    }
+  }
+
+  Future<Null> _pickFile() async {
+    _resetScreen();
+    inputFile = await FilePicker.getFile(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'doc'],
+    );
+    if (inputFile != null) {
+      setState(() {
+        state = AppState.cropped;
+        _scanObject(inputFile);
       });
     }
   }
 
   Future<Null> _snapePicture() async {
-    imageFile = await ImagePicker.pickImage(source: ImageSource.camera);
-    if (imageFile != null) {
+    _resetScreen();
+    inputFile = await ImagePicker.pickImage(source: ImageSource.camera);
+    if (inputFile != null) {
       setState(() {
-        state = AppState.picked;
-        _cropImage();
+        state = AppState.cropped;
+        _scanObject(inputFile);
       });
     }
   }
 
+  void _resetScreen() {
+    setState(() {
+      textResult = "No Conversion Yet";
+      inputFile = null;
+      scanningStatus = 0;
+      currentPosition = 3;
+    });
+  }
+
+  void _scanObject(File file) async {
+    Scanner scanner = Scanner(context: context);
+    HistoryManager history = HistoryManager();
+    String path = inputFile.path;
+    String filename =
+        path.substring(path.lastIndexOf("/") + 1, path.lastIndexOf(".")) +
+            ".txt";
+    dynamic result = await scanner.scan(file);
+    setState(() {
+      if (result['status'] != "1") {
+        scanningStatus = 0;
+        textResult = "Unable to extract text from the given Image!";
+      } else {
+        scanningStatus = 1;
+        textResult = result['data'];
+        history.add(filename +
+            "~|" +
+            textResult +
+            "~|" +
+            DateTime.now().toString() +
+            "~|");
+         _refreshHistory();
+      }
+      currentPosition = 1;
+    });
+
+  }
+
+  _addTest(){
+     HistoryManager history = HistoryManager();
+     history.add("image_cropper_1586891598072.txt~|3. Alhaji Musa Yahya C08033041148~|2020-04-14 20:13:36.023289~|");
+  }
+
+  void _refreshHistory() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String historyDump = prefs.getString("history");
+    if (historyDump != null && historyDump != "[]") {
+      historyDump = historyDump.replaceAll("[", "").replaceAll("]", "");
+      setState(() {
+        history.clear();
+        history.addAll(historyDump.split("~|,"));
+      });
+    } else {
+      historyDump = "";
+    }
+  }
+
   Future<Null> _cropImage() async {
+    print(inputFile);
     File croppedFile = await ImageCropper.cropImage(
-        sourcePath: imageFile.path,
+        sourcePath: inputFile.path,
         aspectRatioPresets: Platform.isAndroid
             ? [
                 CropAspectRatioPreset.square,
@@ -259,14 +430,11 @@ class _MyAppState extends State<MyApp> {
           title: 'Crop where to Scan',
         ));
     if (croppedFile != null) {
-      imageFile = croppedFile;
       setState(() {
+        inputFile = croppedFile;
         state = AppState.cropped;
       });
+      _scanObject(inputFile);
     }
-  }
-
-  void _saveText() async {
-    Toast.show("Saved", context);
   }
 }

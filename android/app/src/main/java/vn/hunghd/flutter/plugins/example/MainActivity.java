@@ -1,4 +1,4 @@
-package com.rabsdeveloper.tscanner;
+package com.rabsdeveloper.file2text;
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity;

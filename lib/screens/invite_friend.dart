@@ -1,4 +1,4 @@
-import 'package:tscanner/components/themes.dart';
+import 'package:file2text/components/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
 
@@ -34,7 +34,7 @@ class _InviteFriendState extends State<InviteFriend> {
                       top: MediaQuery.of(context).padding.top,
                       left: 16,
                       right: 16),
-                  child: Image.asset('Assets/images/inviteImage.png'),
+                  child: Image.asset('assets/images/inviteImage.png'),
                 ),
                 Container(
                   padding: const EdgeInsets.only(top: 8),
@@ -79,7 +79,7 @@ class _InviteFriendState extends State<InviteFriend> {
                           child: InkWell(
                             onTap: () {
                               Share.share(
-                                  "Hi There!\n\nDownload Corona Tracker app  v1.0\n\nCorona Tracker is a free mobile app that helps in getting world-wide data on Coronavirus spread. It uses publicly available and reliable data sources to show information on COVID-19 cases worldwide. See the numbers or visualize via charts and map clusters.\n\nhttps://play.google.com/store/apps/details?id=com.rabsdeveloper.coronatracker");
+                                  "Hi There!\n\nDownload File to Text app  v1.0\n\nIt's a cross platform mobile pplication built with  OCR (Optical Character Recognition) service to extract text from any image or PDF file. The result is 99.89% accurate as tested with different images and PDF.\n\nhttps://play.google.com/store/apps/details?id=com.rabsdeveloper.file2text");
                             },
                             child: Center(
                               child: Row(

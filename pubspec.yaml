@@ -1,5 +1,5 @@
-name: tscanner
-description: Text scanner
+name: file2text
+description: File to text Converter
 version: 1.0.0+1
 
 dependencies:
@@ -7,22 +7,30 @@ dependencies:
     sdk: flutter
 
 
-  image_picker: ^0.6.2+3
   cupertino_icons: ^0.1.2
-  photo_view: ^0.9.2
   share: ^0.6.3+6
   toast: ^0.1.5
-  flutter_launcher_icons: "^0.7.3"
-  fancy_bottom_navigation: ^0.3.2
   gallery_saver: ^1.0.7
   url_launcher: ^5.4.2
-  
+  progress_dialog: ^1.2.2
+  connectivity: ^0.4.8+2
+  image_gallery: ^1.2.0
+  clipboard_manager: ^0.0.1
+  shared_preferences: ^0.5.6+3
+  splashscreen: ^1.2.0
+  dio: ^3.0.9
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   image_cropper:
+  fancy_bottom_navigation:
+  flutter_launcher_icons:
+  multi_image_picker:
+  image_picker:
+  file_picker:
 
 flutter_icons:
   android: "launcher_icon" 

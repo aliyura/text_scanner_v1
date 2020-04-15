@@ -1,4 +1,4 @@
-import 'package:tscanner/components/themes.dart';
+import 'package:file2text/components/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -40,7 +40,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                           top: MediaQuery.of(context).padding.top,
                           left: 16,
                           right: 16),
-                      child: Image.asset('Assets/images/feedbackImage.png'),
+                      child: Image.asset('assets/images/feedbackImage.png'),
                     ),
                     Container(
                       padding: const EdgeInsets.only(top: 8),
@@ -175,7 +175,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   }
 
   _launchURL(body) async {
-    String url="mailto:net.rabiualiyu@gmail.com?subject=User feedback from Corona Scanner app v0.0.1&body="+body;
+    String url="mailto:net.rabiualiyu@gmail.com?subject=User feedback from File to Text app v0.0.1&body="+body;
     if (await canLaunch(url)) {
       await launch(url);
     } else {
